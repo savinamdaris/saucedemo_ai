@@ -1,0 +1,220 @@
+<testsuites id="" name="" tests="22" failures="4" skipped="0" errors="0" time="33.424181">
+<testsuite name="e2e-shopping.spec.js" timestamp="2025-07-21T14:20:08.072Z" hostname="chromium" tests="5" failures="0" skipped="0" time="8.4" errors="0">
+<testcase name="End-to-End Shopping Flow › should complete full shopping flow" classname="e2e-shopping.spec.js" time="1.366">
+</testcase>
+<testcase name="End-to-End Shopping Flow › should handle cart operations" classname="e2e-shopping.spec.js" time="1.344">
+</testcase>
+<testcase name="End-to-End Shopping Flow › should validate checkout form fields" classname="e2e-shopping.spec.js" time="2.998">
+</testcase>
+<testcase name="End-to-End Shopping Flow › should allow cancellation during checkout" classname="e2e-shopping.spec.js" time="1.323">
+</testcase>
+<testcase name="End-to-End Shopping Flow › should return to products after completing order" classname="e2e-shopping.spec.js" time="1.369">
+</testcase>
+</testsuite>
+<testsuite name="inventory.spec.js" timestamp="2025-07-21T14:20:08.072Z" hostname="chromium" tests="10" failures="4" skipped="0" time="127.623" errors="0">
+<testcase name="Inventory Tests › should display all products on inventory page" classname="inventory.spec.js" time="1.27">
+</testcase>
+<testcase name="Inventory Tests › should add product to cart" classname="inventory.spec.js" time="0.767">
+</testcase>
+<testcase name="Inventory Tests › should add multiple products to cart" classname="inventory.spec.js" time="0.532">
+</testcase>
+<testcase name="Inventory Tests › should remove product from cart" classname="inventory.spec.js" time="0.78">
+</testcase>
+<testcase name="Inventory Tests › Product sorting › should sort products by name A-Z" classname="inventory.spec.js" time="30.623">
+<failure message="inventory.spec.js:53:9 should sort products by name A-Z" type="FAILURE">
+<![CDATA[  [chromium] › inventory.spec.js:53:9 › Inventory Tests › Product sorting › should sort products by name A-Z 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.selectOption: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('[data-test="product_sort_container"]')
+
+
+       at ../pages/InventoryPage.js:40
+
+      38 |
+      39 |   async sortProducts(sortOption) {
+    > 40 |     await this.sortDropdown.selectOption(sortOption);
+         |                             ^
+      41 |   }
+      42 |
+      43 |   async getProductNames() {
+        at InventoryPage.sortProducts (/Users/savinasavova/Projects/Amdaris/SAUCEdemo/pages/InventoryPage.js:40:29)
+        at /Users/savinasavova/Projects/Amdaris/SAUCEdemo/tests/inventory.spec.js:54:27
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/inventory-Inventory-Tests--e40eb-d-sort-products-by-name-A-Z-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/inventory-Inventory-Tests--e40eb-d-sort-products-by-name-A-Z-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/inventory-Inventory-Tests--e40eb-d-sort-products-by-name-A-Z-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|inventory-Inventory-Tests--e40eb-d-sort-products-by-name-A-Z-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|inventory-Inventory-Tests--e40eb-d-sort-products-by-name-A-Z-chromium/video.webm]]
+
+[[ATTACHMENT|inventory-Inventory-Tests--e40eb-d-sort-products-by-name-A-Z-chromium/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Inventory Tests › Product sorting › should sort products by name Z-A" classname="inventory.spec.js" time="30.559">
+<failure message="inventory.spec.js:61:9 should sort products by name Z-A" type="FAILURE">
+<![CDATA[  [chromium] › inventory.spec.js:61:9 › Inventory Tests › Product sorting › should sort products by name Z-A 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.selectOption: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('[data-test="product_sort_container"]')
+
+
+       at ../pages/InventoryPage.js:40
+
+      38 |
+      39 |   async sortProducts(sortOption) {
+    > 40 |     await this.sortDropdown.selectOption(sortOption);
+         |                             ^
+      41 |   }
+      42 |
+      43 |   async getProductNames() {
+        at InventoryPage.sortProducts (/Users/savinasavova/Projects/Amdaris/SAUCEdemo/pages/InventoryPage.js:40:29)
+        at /Users/savinasavova/Projects/Amdaris/SAUCEdemo/tests/inventory.spec.js:62:27
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/inventory-Inventory-Tests--25cdc-d-sort-products-by-name-Z-A-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/inventory-Inventory-Tests--25cdc-d-sort-products-by-name-Z-A-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/inventory-Inventory-Tests--25cdc-d-sort-products-by-name-Z-A-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|inventory-Inventory-Tests--25cdc-d-sort-products-by-name-Z-A-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|inventory-Inventory-Tests--25cdc-d-sort-products-by-name-Z-A-chromium/video.webm]]
+
+[[ATTACHMENT|inventory-Inventory-Tests--25cdc-d-sort-products-by-name-Z-A-chromium/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Inventory Tests › Product sorting › should sort products by price low to high" classname="inventory.spec.js" time="30.56">
+<failure message="inventory.spec.js:69:9 should sort products by price low to high" type="FAILURE">
+<![CDATA[  [chromium] › inventory.spec.js:69:9 › Inventory Tests › Product sorting › should sort products by price low to high 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.selectOption: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('[data-test="product_sort_container"]')
+
+
+       at ../pages/InventoryPage.js:40
+
+      38 |
+      39 |   async sortProducts(sortOption) {
+    > 40 |     await this.sortDropdown.selectOption(sortOption);
+         |                             ^
+      41 |   }
+      42 |
+      43 |   async getProductNames() {
+        at InventoryPage.sortProducts (/Users/savinasavova/Projects/Amdaris/SAUCEdemo/pages/InventoryPage.js:40:29)
+        at /Users/savinasavova/Projects/Amdaris/SAUCEdemo/tests/inventory.spec.js:70:27
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/inventory-Inventory-Tests--4913e-oducts-by-price-low-to-high-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/inventory-Inventory-Tests--4913e-oducts-by-price-low-to-high-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/inventory-Inventory-Tests--4913e-oducts-by-price-low-to-high-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|inventory-Inventory-Tests--4913e-oducts-by-price-low-to-high-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|inventory-Inventory-Tests--4913e-oducts-by-price-low-to-high-chromium/video.webm]]
+
+[[ATTACHMENT|inventory-Inventory-Tests--4913e-oducts-by-price-low-to-high-chromium/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Inventory Tests › Product sorting › should sort products by price high to low" classname="inventory.spec.js" time="30.604">
+<failure message="inventory.spec.js:77:9 should sort products by price high to low" type="FAILURE">
+<![CDATA[  [chromium] › inventory.spec.js:77:9 › Inventory Tests › Product sorting › should sort products by price high to low 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.selectOption: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('[data-test="product_sort_container"]')
+
+
+       at ../pages/InventoryPage.js:40
+
+      38 |
+      39 |   async sortProducts(sortOption) {
+    > 40 |     await this.sortDropdown.selectOption(sortOption);
+         |                             ^
+      41 |   }
+      42 |
+      43 |   async getProductNames() {
+        at InventoryPage.sortProducts (/Users/savinasavova/Projects/Amdaris/SAUCEdemo/pages/InventoryPage.js:40:29)
+        at /Users/savinasavova/Projects/Amdaris/SAUCEdemo/tests/inventory.spec.js:78:27
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/inventory-Inventory-Tests--f7d11-oducts-by-price-high-to-low-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/inventory-Inventory-Tests--f7d11-oducts-by-price-high-to-low-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/inventory-Inventory-Tests--f7d11-oducts-by-price-high-to-low-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|inventory-Inventory-Tests--f7d11-oducts-by-price-high-to-low-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|inventory-Inventory-Tests--f7d11-oducts-by-price-high-to-low-chromium/video.webm]]
+
+[[ATTACHMENT|inventory-Inventory-Tests--f7d11-oducts-by-price-high-to-low-chromium/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Inventory Tests › should navigate to cart page" classname="inventory.spec.js" time="0.515">
+</testcase>
+<testcase name="Inventory Tests › should logout successfully" classname="inventory.spec.js" time="1.413">
+</testcase>
+</testsuite>
+<testsuite name="login.spec.js" timestamp="2025-07-21T14:20:08.072Z" hostname="chromium" tests="7" failures="0" skipped="0" time="2.989" errors="0">
+<testcase name="Login Tests › should login successfully with valid credentials" classname="login.spec.js" time="0.452">
+</testcase>
+<testcase name="Login Tests › should display error for locked out user" classname="login.spec.js" time="0.4">
+</testcase>
+<testcase name="Login Tests › Invalid login attempts › should display error for invalid credentials - case 1" classname="login.spec.js" time="0.448">
+</testcase>
+<testcase name="Login Tests › Invalid login attempts › should display error for invalid credentials - case 2" classname="login.spec.js" time="0.396">
+</testcase>
+<testcase name="Login Tests › Invalid login attempts › should display error for invalid credentials - case 3" classname="login.spec.js" time="0.399">
+</testcase>
+<testcase name="Login Tests › should clear error message when clicking X button" classname="login.spec.js" time="0.449">
+</testcase>
+<testcase name="Login Tests › should maintain login session after page refresh" classname="login.spec.js" time="0.445">
+</testcase>
+</testsuite>
+</testsuites>
