@@ -176,7 +176,8 @@ npm run test:report
 ```bash
 npm test
 ```
-# or
+or
+
 ```bash
 npx playwright test
 ```
@@ -185,7 +186,8 @@ npx playwright test
 ```bash
 npm run test:headed
 ```
-# or
+or
+
 ```bash
 npx playwright test --headed
 ```
@@ -194,7 +196,8 @@ npx playwright test --headed
 ```bash
 npm run test:ui
 ```
-# or
+or
+
 ```bash
 npx playwright test --ui
 ```
@@ -203,7 +206,8 @@ npx playwright test --ui
 ```bash
 npm run test:chrome
 ```
-# or
+or
+
 ```bash
 npx playwright test --project=chromium
 ```
@@ -212,7 +216,8 @@ npx playwright test --project=chromium
 ```bash
 npm run test:firefox
 ```
-# or
+or
+
 ```bash
 npx playwright test --project=firefox
 ```
@@ -221,7 +226,8 @@ npx playwright test --project=firefox
 ```bash
 npm run test:safari
 ```
-# or
+or
+
 ```bash
 npx playwright test --project=webkit
 ```
@@ -230,7 +236,8 @@ npx playwright test --project=webkit
 ```bash
 npm run test:debug
 ```
-# or
+or
+
 ```bash
 npx playwright test --debug
 ```
@@ -249,17 +256,19 @@ npx playwright test --grep "should login successfully"
 ```bash
 npm run test:report
 ```
-# or
+or
+
 ```bash
 npx playwright show-report
 ```
 
-## How to create Github Actions workflow for CI/CD 
+## How to create Github Actions workflow for CI/CD: 
 
-1. In your repo, go to .github/workflows/ (create these folders if they don't exist).
+1. In the repo, go to .github/workflows/ (create these folders if they don't exist).
 2. In that folder, create a file called .github/workflows/playwright.yml with content:
-name: Playwright Tests
+
 ```bash
+name: Playwright Tests
 on:
   push:
     branches: [ main ]
@@ -298,3 +307,17 @@ jobs:
 - You can monitor the workflow status by clicking on the Actions tab in your repository.      
 
 In addition in VSCode you will be asked "Do you want to install the recommended 'GitHub Actions' extension from GitHub for playwright.yml?"
+
+## Additional: 
+
+1. Monitor the Workflow - go to Actions tab in Github and cick on the workflow run (“In progress”).
+N.B! You can view each step as it runs (checkout, setup, install, test).
+
+2. Review Results
+If tests pass, you’ll see a green checkmark.
+If any step fails, you’ll see an error message or stack trace – this helps you debug!
+
+3. Next Steps
+Set up Test reports - Playwright HTML reports or uploads can be integrated via following this documentation: https://playwright.dev/docs/test-reporters
+ 
+N.B! Notifications on failure can be sent by integrating email/slack or use GitHub status checks.
