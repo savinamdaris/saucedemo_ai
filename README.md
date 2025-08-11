@@ -253,3 +253,48 @@ npm run test:report
 ```bash
 npx playwright show-report
 ```
+
+## How to create Github Actions workflow for CI/CD 
+
+1. In your repo, go to .github/workflows/ (create these folders if they don't exist).
+2. In that folder, create a file called .github/workflows/playwright.yml with content:
+name: Playwright Tests
+```bash
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'   # Or your desired Node version
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+
+      - name: Run tests (Chromium)
+        run: npx playwright test --project=chromium
+```
+
+ 3. Commit and push to your GitHub repository.
+ 4. Every time you push or open a pull request to main, GitHub Actions will:
+- Check out your code
+- Install Node.js and dependencies
+- Install the Playwright browsers
+- Run your tests using npx playwright test --project=chromium
+- You can monitor the workflow status by clicking on the Actions tab in your repository.      
+
+In addition in VSCode you will be asked "Do you want to install the recommended 'GitHub Actions' extension from GitHub for playwright.yml?"
