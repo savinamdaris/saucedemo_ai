@@ -2,22 +2,98 @@ name: Playwright Tests
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, develop ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, develop ]
+  schedule:
+    # Run tests daily at 2 AM UTC
+    - cron: '0 2 * * *'
+
+env:
+  # Environment variables for all jobs
+  CI: true
+  PLAYWRIGHT_BROWSERS_PATH: 0
 
 jobs:
   test:
+    name: Test on ${{ matrix.project }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [chromium, firefox, webkit]
+    
+    env:
+      # Test environment variables
+      BASE_URL: https://www.saucedemo.com
+      TIMEOUT: 30000
+      RETRIES: 2
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '20'   # Or your desired Node version
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps ${{ matrix.project }}
+
+      - name: Run Playwright tests
+        run: npx playwright test --project=${{ matrix.project }}
+        env:
+          # Pass environment variables to tests
+          BASE_URL: ${{ env.BASE_URL }}
+          TIMEOUT: ${{ env.TIMEOUT }}
+          RETRIES: ${{ env.RETRIES }}
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-results-${{ matrix.project }}
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 30
+
+      - name: Upload Playwright Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report-${{ matrix.project }}
+          path: playwright-report/
+          retention-days: 30
+
+  # Mobile testing job
+  mobile-test:
+    name: Mobile Test on ${{ matrix.project }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        project: ['Mobile Chrome', 'Mobile Safari']
+    
+    env:
+      BASE_URL: https://www.saucedemo.com
+      TIMEOUT: 30000
+      RETRIES: 2
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
 
       - name: Install dependencies
         run: npm ci
@@ -25,5 +101,101 @@ jobs:
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
 
-      - name: Run tests (Chromium)
-        run: npx playwright test --project=chromium
+      - name: Run Mobile Playwright tests
+        run: npx playwright test --project="${{ matrix.project }}"
+        env:
+          BASE_URL: ${{ env.BASE_URL }}
+          TIMEOUT: ${{ env.TIMEOUT }}
+          RETRIES: ${{ env.RETRIES }}
+
+      - name: Upload mobile test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-mobile-results-${{ matrix.project }}
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 30
+
+  # Merge reports from all browsers
+  merge-reports:
+    name: Merge Reports
+    if: always()
+    needs: [test, mobile-test]
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Merge HTML Reports
+        run: |
+          # Create merged report directory
+          mkdir -p merged-report
+          
+          # Copy all HTML reports
+          find artifacts -name "index.html" -path "*/playwright-report/*" | head -1 | xargs -I {} cp -r "$(dirname {})"/* merged-report/ || echo "No HTML reports found"
+          
+          # Create a simple index page listing all reports
+          echo '<!DOCTYPE html><html><head><title>Test Results Summary</title></head><body>' > merged-report/summary.html
+          echo '<h1>Playwright Test Results</h1>' >> merged-report/summary.html
+          echo '<ul>' >> merged-report/summary.html
+          for artifact in artifacts/playwright-report-*; do
+            if [ -d "$artifact" ] && [ -f "$artifact/index.html" ]; then
+              browser=$(basename "$artifact" | sed 's/playwright-report-//')
+              echo "<li><a href='index.html'>$browser Results</a></li>" >> merged-report/summary.html
+            fi
+          done
+          echo '</ul></body></html>' >> merged-report/summary.html
+
+      - name: Upload merged report
+        uses: actions/upload-artifact@v4
+        with:
+          name: merged-playwright-report
+          path: merged-report/
+          retention-days: 30
+
+      - name: Deploy to GitHub Pages
+        if: github.ref == 'refs/heads/main'
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: merged-report
+          destination_dir: test-reports
+
+  # Notification job
+  notify:
+    name: Notify Results
+    if: always()
+    needs: [test, mobile-test, merge-reports]
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Notify on success
+        if: needs.test.result == 'success' && needs.mobile-test.result == 'success'
+        run: |
+          echo "✅ All tests passed successfully!"
+          echo "Desktop browsers: chromium, firefox, webkit"
+          echo "Mobile browsers: Mobile Chrome, Mobile Safari"
+
+      - name: Notify on failure
+        if: needs.test.result == 'failure' || needs.mobile-test.result == 'failure'
+        run: |
+          echo "❌ Some tests failed!"
+          echo "Check the test artifacts for detailed results."
+          exit 1

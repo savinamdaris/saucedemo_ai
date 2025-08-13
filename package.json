@@ -12,6 +12,11 @@
     "test:chrome": "npx playwright test --project=chromium",
     "test:firefox": "npx playwright test --project=firefox",
     "test:safari": "npx playwright test --project=webkit",
+    "test:mobile": "npx playwright test --project='Mobile Chrome' --project='Mobile Safari'",
+    "test:all-browsers": "npx playwright test --project=chromium --project=firefox --project=webkit",
+    "test:ci": "CI=true npx playwright test",
+    "test:staging": "BASE_URL=https://staging.saucedemo.com npx playwright test",
+    "test:prod": "BASE_URL=https://www.saucedemo.com npx playwright test",
     "install:browsers": "npx playwright install"
   },
   "keywords": [

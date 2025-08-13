@@ -10,7 +10,65 @@ This project contains automated tests for the [SauceDemo](https://www.saucedemo.
 │   ├── InventoryPage.js
 │   ├── CartPage.js
 │   └── CheckoutPage.js
-├── tests/                  # Test files
+├── tests/ ## Additional: 
+
+### Workflow Monitoring & Management:
+
+1. **Monitor the Workflow** - Go to **Actions** tab in GitHub
+   - View real-time execution status for all browser tests
+   - See parallel execution of desktop and mobile tests
+   - Download test artifacts (reports, screenshots, videos)
+
+2. **Review Results**
+   - ✅ Green checkmarks indicate all browser tests passed
+   - ❌ Red X shows which specific browsers/tests failed
+   - Detailed logs help debug cross-browser issues
+   - View HTML reports directly in browser
+
+3. **Advanced Features**
+   - **Matrix Strategy**: Tests run in parallel across all browsers
+   - **Artifact Management**: Reports stored for 30 days with browser-specific naming
+   - **Environment Variables**: Configurable BASE_URL, timeouts, and retry counts
+   - **Mobile Testing**: Dedicated job for mobile viewports
+   - **Report Merging**: Unified view of all browser test results
+   - **GitHub Pages**: Automatic deployment of test reports
+   - **Scheduled Runs**: Daily automated testing at 2 AM UTC
+
+4. **Environment Configuration**
+   ```yaml
+   env:
+     BASE_URL: https://www.saucedemo.com
+     TIMEOUT: 30000
+     RETRIES: 2
+   ```
+
+5. **Cross-Browser Coverage**
+   - **Desktop**: Chromium, Firefox, WebKit (Safari)
+   - **Mobile**: Mobile Chrome, Mobile Safari
+   - **Parallel Execution**: All browsers tested simultaneously
+   - **Fail-Fast Disabled**: Continue testing all browsers even if one fails
+
+6. **Reporting Features**
+   - HTML reports with screenshots and videos
+   - JUnit XML for CI/CD integration
+   - JSON reports for custom analysis
+   - GitHub-specific reporting format
+   - Merged reports across all browsers
+
+7. **Next Steps**
+   - **Slack/Email Notifications**: Add webhook integrations for team alerts
+   - **Performance Testing**: Add Lighthouse integration for performance metrics
+   - **Visual Testing**: Integrate screenshot comparison tools
+   - **Security Scanning**: Add security vulnerability checks
+   - **Custom Browsers**: Add Edge, Chrome Beta, or specific versions
+
+### Troubleshooting CI/CD Issues:
+
+- **Browser Installation Failures**: Check if all browsers install correctly
+- **Test Flakiness**: Review retry settings and timeout configurations
+- **Mobile Test Issues**: Verify mobile viewport configurations
+- **Report Generation**: Ensure all artifact paths are correctly configured
+- **Environment Variables**: Validate all required env vars are set    # Test files
 │   ├── login.spec.js
 │   ├── inventory.spec.js
 │   └── e2e-shopping.spec.js
@@ -71,10 +129,57 @@ npm run test:firefox
 npm run test:safari
 ```
 
+### Run mobile tests
+```bash
+npm run test:mobile
+```
+
+### Run all browsers at once
+```bash
+npm run test:all-browsers
+```
+
+### Run tests with environment variables
+```bash
+# Test against staging environment
+npm run test:staging
+
+# Test against production environment
+npm run test:prod
+
+# Run with CI settings locally
+npm run test:ci
+```
+
 ### View test reports
 ```bash
 npm run test:report
 ```
+
+## Environment Variables
+
+The project supports various environment variables for configuration:
+
+- `BASE_URL`: Base URL of the application (default: https://www.saucedemo.com)
+- `TIMEOUT`: Timeout for actions and navigation in milliseconds (default: 30000)
+- `RETRIES`: Number of retries for failed tests in CI (default: 2)
+- `CI`: Indicates if running in CI environment (default: false)
+- `TEST_ENV`: Test environment identifier (dev, staging, production)
+- `HEADLESS`: Run tests in headless mode (default: true)
+
+### Using Environment Variables
+
+1. **Local Development**: Copy `.env.example` to `.env` and modify values
+   ```bash
+   cp .env.example .env
+   ```
+
+2. **Command Line**: Set variables inline
+   ```bash
+   BASE_URL=https://staging.example.com TIMEOUT=60000 npm test
+   ```
+
+3. **GitHub Actions**: Variables are automatically set in the CI workflow
 
 ## Test Coverage
 
@@ -264,49 +369,42 @@ npx playwright show-report
 
 ## How to create Github Actions workflow for CI/CD: 
 
-1. In the repo, go to .github/workflows/ (create these folders if they don't exist).
-2. In that folder, create a file called .github/workflows/playwright.yml with content:
+The project includes a comprehensive GitHub Actions workflow (`.github/workflows/playwright.yml`) that provides:
 
-```bash
-name: Playwright Tests
-on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+### Features:
+1. **Cross-browser Testing**: Runs tests on Chromium, Firefox, and WebKit
+2. **Mobile Testing**: Tests on Mobile Chrome and Mobile Safari
+3. **Test Reporting**: Generates HTML, JSON, and JUnit reports
+4. **Artifact Storage**: Stores test results and reports for 30 days
+5. **Environment Variables**: Supports configurable test environments
+6. **GitHub Pages Deployment**: Auto-deploys reports to GitHub Pages
+7. **Scheduled Runs**: Daily automated test execution
+8. **Parallel Execution**: Runs browser tests in parallel for faster feedback
 
-jobs:
-  test:
-    runs-on: ubuntu-latest
+### Workflow Structure:
+- **Desktop Tests**: Runs on chromium, firefox, webkit in parallel
+- **Mobile Tests**: Runs on Mobile Chrome and Mobile Safari
+- **Report Merging**: Combines all reports into a unified view
+- **Notifications**: Success/failure notifications with detailed status
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+### Setup:
+1. The workflow file is already created at `.github/workflows/playwright.yml`
+2. Push to `main` or `develop` branch to trigger tests
+3. Create pull requests to run tests automatically
+4. Tests also run daily at 2 AM UTC
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '20'   # Or your desired Node version
+### Monitoring:
+- Go to **Actions** tab in your GitHub repository
+- Click on workflow runs to see detailed results
+- Download artifacts (test reports, videos, screenshots)
+- View deployed reports on GitHub Pages (if enabled)
 
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Install Playwright Browsers
-        run: npx playwright install --with-deps
-
-      - name: Run tests (Chromium)
-        run: npx playwright test --project=chromium
-```
-
- 3. Commit and push to your GitHub repository.
- 4. Every time you push or open a pull request to main, GitHub Actions will:
-- Check out your code
-- Install Node.js and dependencies
-- Install the Playwright browsers
-- Run your tests using npx playwright test --project=chromium
-- You can monitor the workflow status by clicking on the Actions tab in your repository.      
-
-In addition in VSCode you will be asked "Do you want to install the recommended 'GitHub Actions' extension from GitHub for playwright.yml?"
+### GitHub Pages Setup (Optional):
+To enable automatic report deployment:
+1. Go to repository **Settings** → **Pages**
+2. Select **Deploy from a branch**
+3. Choose **gh-pages** branch
+4. Reports will be available at: `https://[username].github.io/[repository]/test-reports/`
 
 ## Additional: 
 
