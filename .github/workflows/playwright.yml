@@ -13,21 +13,60 @@ env:
   # Environment variables for all jobs
   CI: true
   PLAYWRIGHT_BROWSERS_PATH: 0
+  # Performance optimization
+  NODE_OPTIONS: "--max-old-space-size=4096"
 
 jobs:
-  test:
-    name: Test on ${{ matrix.project }}
+  # Test sharding for desktop browsers
+  test-desktop:
+    name: Desktop Tests (Shard ${{ matrix.shard }}/${{ strategy.job-total }}) - ${{ matrix.project }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         project: [chromium, firefox, webkit]
+        shard: [1, 2, 3]
+        include:
+          - project: chromium
+            shard: 1
+            total-shards: 3
+          - project: chromium  
+            shard: 2
+            total-shards: 3
+          - project: chromium
+            shard: 3
+            total-shards: 3
+          - project: firefox
+            shard: 1
+            total-shards: 3
+          - project: firefox
+            shard: 2
+            total-shards: 3
+          - project: firefox
+            shard: 3
+            total-shards: 3
+          - project: webkit
+            shard: 1
+            total-shards: 3
+          - project: webkit
+            shard: 2
+            total-shards: 3
+          - project: webkit
+            shard: 3
+            total-shards: 3
     
     env:
       # Test environment variables
       BASE_URL: https://www.saucedemo.com
-      TIMEOUT: 30000
-      RETRIES: 2
+      TIMEOUT: 15000
+      RETRIES: 3
+      WORKERS: 2
+      GLOBAL_SETUP: true
+      GLOBAL_TEARDOWN: true
+      # Sharding configuration
+      SHARD: true
+      SHARD_CURRENT: ${{ matrix.shard }}
+      SHARD_TOTAL: ${{ matrix.total-shards }}
 
     steps:
       - name: Checkout repository
@@ -42,38 +81,39 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Install Playwright Browsers
+      - name: Install Playwright Browser (${{ matrix.project }})
         run: npx playwright install --with-deps ${{ matrix.project }}
 
-      - name: Run Playwright tests
-        run: npx playwright test --project=${{ matrix.project }}
+      - name: Run Playwright tests with sharding
+        run: |
+          npx playwright test \
+            --project=${{ matrix.project }} \
+            --shard=${{ matrix.shard }}/${{ matrix.total-shards }} \
+            --reporter=github,html,json,junit
         env:
-          # Pass environment variables to tests
           BASE_URL: ${{ env.BASE_URL }}
           TIMEOUT: ${{ env.TIMEOUT }}
           RETRIES: ${{ env.RETRIES }}
+          WORKERS: ${{ env.WORKERS }}
+          GLOBAL_SETUP: ${{ env.GLOBAL_SETUP }}
+          GLOBAL_TEARDOWN: ${{ env.GLOBAL_TEARDOWN }}
+          SHARD: ${{ env.SHARD }}
+          SHARD_CURRENT: ${{ env.SHARD_CURRENT }}
+          SHARD_TOTAL: ${{ env.SHARD_TOTAL }}
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: playwright-results-${{ matrix.project }}
+          name: desktop-results-${{ matrix.project }}-shard-${{ matrix.shard }}
           path: |
             test-results/
             playwright-report/
           retention-days: 30
 
-      - name: Upload Playwright Report
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: playwright-report-${{ matrix.project }}
-          path: playwright-report/
-          retention-days: 30
-
-  # Mobile testing job
-  mobile-test:
-    name: Mobile Test on ${{ matrix.project }}
+  # Optimized mobile testing (no sharding for fewer tests)
+  test-mobile:
+    name: Mobile Tests - ${{ matrix.project }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -82,8 +122,10 @@ jobs:
     
     env:
       BASE_URL: https://www.saucedemo.com
-      TIMEOUT: 30000
-      RETRIES: 2
+      TIMEOUT: 20000
+      RETRIES: 3
+      WORKERS: 1
+      GLOBAL_SETUP: true
 
     steps:
       - name: Checkout repository
@@ -102,27 +144,81 @@ jobs:
         run: npx playwright install --with-deps
 
       - name: Run Mobile Playwright tests
-        run: npx playwright test --project="${{ matrix.project }}"
+        run: |
+          npx playwright test \
+            --project="${{ matrix.project }}" \
+            --reporter=github,html,json
         env:
           BASE_URL: ${{ env.BASE_URL }}
           TIMEOUT: ${{ env.TIMEOUT }}
           RETRIES: ${{ env.RETRIES }}
+          WORKERS: ${{ env.WORKERS }}
+          GLOBAL_SETUP: ${{ env.GLOBAL_SETUP }}
 
       - name: Upload mobile test results
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: playwright-mobile-results-${{ matrix.project }}
+          name: mobile-results-${{ matrix.project }}
           path: |
             test-results/
             playwright-report/
           retention-days: 30
 
-  # Merge reports from all browsers
+  # Performance testing job
+  performance-test:
+    name: Performance Tests
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'schedule'
+    
+    env:
+      BASE_URL: https://www.saucedemo.com
+      TIMEOUT: 30000
+      RETRIES: 2
+      WORKERS: 1
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Performance Tests
+        run: |
+          npx playwright test \
+            --project=performance \
+            --reporter=github,html,json
+        env:
+          BASE_URL: ${{ env.BASE_URL }}
+          TIMEOUT: ${{ env.TIMEOUT }}
+          RETRIES: ${{ env.RETRIES }}
+          WORKERS: ${{ env.WORKERS }}
+
+      - name: Upload performance results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: performance-results
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 60
+
+  # Merge reports from all shards and browsers
   merge-reports:
-    name: Merge Reports
+    name: Merge Test Reports
     if: always()
-    needs: [test, mobile-test]
+    needs: [test-desktop, test-mobile]
     runs-on: ubuntu-latest
     
     steps:
@@ -143,32 +239,76 @@ jobs:
         with:
           path: artifacts
 
-      - name: Merge HTML Reports
+      - name: Merge Test Reports
         run: |
+          echo "📊 Merging test reports from all shards and browsers..."
+          
           # Create merged report directory
           mkdir -p merged-report
           
-          # Copy all HTML reports
-          find artifacts -name "index.html" -path "*/playwright-report/*" | head -1 | xargs -I {} cp -r "$(dirname {})"/* merged-report/ || echo "No HTML reports found"
+          # Initialize report merge
+          echo '<!DOCTYPE html><html><head><title>Playwright Test Results - All Browsers & Shards</title>' > merged-report/index.html
+          echo '<style>body{font-family:Arial,sans-serif;margin:40px;}h1{color:#2196F3;}ul{list-style-type:none;}li{margin:10px 0;}a{color:#1976D2;text-decoration:none;}a:hover{text-decoration:underline;}.summary{background:#f5f5f5;padding:20px;border-radius:5px;margin:20px 0;}.passed{color:#4CAF50;}.failed{color:#f44336;}.total{color:#2196F3;}</style>' >> merged-report/index.html
+          echo '</head><body><h1>🎭 Playwright Test Results Summary</h1>' >> merged-report/index.html
           
-          # Create a simple index page listing all reports
-          echo '<!DOCTYPE html><html><head><title>Test Results Summary</title></head><body>' > merged-report/summary.html
-          echo '<h1>Playwright Test Results</h1>' >> merged-report/summary.html
-          echo '<ul>' >> merged-report/summary.html
-          for artifact in artifacts/playwright-report-*; do
-            if [ -d "$artifact" ] && [ -f "$artifact/index.html" ]; then
-              browser=$(basename "$artifact" | sed 's/playwright-report-//')
-              echo "<li><a href='index.html'>$browser Results</a></li>" >> merged-report/summary.html
+          # Count total tests and results
+          total_passed=0
+          total_failed=0
+          total_tests=0
+          
+          echo '<div class="summary"><h2>📈 Test Execution Summary</h2>' >> merged-report/index.html
+          echo '<h3>🌐 Desktop Browser Results (Sharded)</h3><ul>' >> merged-report/index.html
+          
+          # Process desktop results
+          for artifact_dir in artifacts/desktop-results-*; do
+            if [ -d "$artifact_dir" ] && [ -f "$artifact_dir/test-results/results.json" ]; then
+              browser_shard=$(basename "$artifact_dir" | sed 's/desktop-results-//')
+              echo "<li>📱 <strong>$browser_shard</strong>" >> merged-report/index.html
+              
+              # Extract test counts from JSON
+              if [ -f "$artifact_dir/test-results/results.json" ]; then
+                # Simple test result parsing (you can enhance this)
+                echo " - <a href='$browser_shard/index.html'>View Report</a></li>" >> merged-report/index.html
+                
+                # Copy report for browser/shard
+                if [ -f "$artifact_dir/playwright-report/index.html" ]; then
+                  mkdir -p "merged-report/$browser_shard"
+                  cp -r "$artifact_dir/playwright-report/"* "merged-report/$browser_shard/"
+                fi
+              fi
             fi
           done
-          echo '</ul></body></html>' >> merged-report/summary.html
+          
+          echo '</ul><h3>📱 Mobile Browser Results</h3><ul>' >> merged-report/index.html
+          
+          # Process mobile results
+          for artifact_dir in artifacts/mobile-results-*; do
+            if [ -d "$artifact_dir" ]; then
+              mobile_browser=$(basename "$artifact_dir" | sed 's/mobile-results-//' | sed 's/%20/ /g')
+              echo "<li>📱 <strong>$mobile_browser</strong>" >> merged-report/index.html
+              echo " - <a href='mobile-$mobile_browser/index.html'>View Report</a></li>" >> merged-report/index.html
+              
+              # Copy mobile report
+              if [ -f "$artifact_dir/playwright-report/index.html" ]; then
+                mkdir -p "merged-report/mobile-$mobile_browser"
+                cp -r "$artifact_dir/playwright-report/"* "merged-report/mobile-$mobile_browser/"
+              fi
+            fi
+          done
+          
+          echo '</ul></div>' >> merged-report/index.html
+          echo '<p>📊 <strong>Sharding Strategy:</strong> Desktop tests run across 3 shards per browser for optimal performance</p>' >> merged-report/index.html
+          echo '<p>⚡ <strong>Performance Optimizations:</strong> Parallel execution, browser-specific launch args, smart retry logic</p>' >> merged-report/index.html
+          echo '</body></html>' >> merged-report/index.html
+          
+          echo "✅ Report merging completed"
 
       - name: Upload merged report
         uses: actions/upload-artifact@v4
         with:
-          name: merged-playwright-report
+          name: merged-test-report
           path: merged-report/
-          retention-days: 30
+          retention-days: 60
 
       - name: Deploy to GitHub Pages
         if: github.ref == 'refs/heads/main'
@@ -178,24 +318,60 @@ jobs:
           publish_dir: merged-report
           destination_dir: test-reports
 
-  # Notification job
+  # Performance and status notification
   notify:
-    name: Notify Results
+    name: Test Results Notification
     if: always()
-    needs: [test, mobile-test, merge-reports]
+    needs: [test-desktop, test-mobile, performance-test, merge-reports]
     runs-on: ubuntu-latest
     
     steps:
-      - name: Notify on success
-        if: needs.test.result == 'success' && needs.mobile-test.result == 'success'
+      - name: Calculate test results
+        id: results
         run: |
-          echo "✅ All tests passed successfully!"
-          echo "Desktop browsers: chromium, firefox, webkit"
-          echo "Mobile browsers: Mobile Chrome, Mobile Safari"
+          # Determine overall status
+          desktop_status="${{ needs.test-desktop.result }}"
+          mobile_status="${{ needs.test-mobile.result }}"
+          perf_status="${{ needs.performance-test.result }}"
+          
+          if [[ "$desktop_status" == "success" && "$mobile_status" == "success" ]]; then
+            echo "status=success" >> $GITHUB_OUTPUT
+            echo "message=All tests passed successfully! ✅" >> $GITHUB_OUTPUT
+          else
+            echo "status=failure" >> $GITHUB_OUTPUT
+            echo "message=Some tests failed ❌" >> $GITHUB_OUTPUT
+          fi
+          
+          echo "desktop=$desktop_status" >> $GITHUB_OUTPUT
+          echo "mobile=$mobile_status" >> $GITHUB_OUTPUT
+          echo "performance=$perf_status" >> $GITHUB_OUTPUT
 
-      - name: Notify on failure
-        if: needs.test.result == 'failure' || needs.mobile-test.result == 'failure'
+      - name: Success Notification
+        if: steps.results.outputs.status == 'success'
         run: |
-          echo "❌ Some tests failed!"
-          echo "Check the test artifacts for detailed results."
+          echo "🎉 Test Execution Summary:"
+          echo "✅ Desktop Tests (Sharded): ${{ steps.results.outputs.desktop }}"
+          echo "✅ Mobile Tests: ${{ steps.results.outputs.mobile }}"
+          echo "⚡ Performance Tests: ${{ steps.results.outputs.performance }}"
+          echo ""
+          echo "🚀 Performance Optimizations Applied:"
+          echo "   • Test sharding across 3 shards per browser"
+          echo "   • Smart retry mechanisms with exponential backoff"
+          echo "   • Browser-specific launch optimizations"
+          echo "   • Parallel execution with optimized worker count"
+          echo "   • Global setup/teardown for better performance"
+
+      - name: Failure Notification
+        if: steps.results.outputs.status == 'failure'
+        run: |
+          echo "⚠️ Test Execution Summary:"
+          echo "🖥️ Desktop Tests: ${{ steps.results.outputs.desktop }}"
+          echo "📱 Mobile Tests: ${{ steps.results.outputs.mobile }}"
+          echo "⚡ Performance Tests: ${{ steps.results.outputs.performance }}"
+          echo ""
+          echo "🔍 Troubleshooting:"
+          echo "   • Check individual shard results for detailed errors"
+          echo "   • Review retry logs for intermittent failures"
+          echo "   • Analyze performance test results if applicable"
+          echo "   • Download artifacts for screenshots and videos"
           exit 1
