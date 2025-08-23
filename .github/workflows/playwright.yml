@@ -19,41 +19,13 @@ env:
 jobs:
   # Test sharding for desktop browsers
   test-desktop:
-    name: Desktop Tests (Shard ${{ matrix.shard }}/${{ strategy.job-total }}) - ${{ matrix.project }}
+    name: Desktop ${{ matrix.project }} (Shard ${{ matrix.shard }}/3)
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         project: [chromium, firefox, webkit]
         shard: [1, 2, 3]
-        include:
-          - project: chromium
-            shard: 1
-            total-shards: 3
-          - project: chromium  
-            shard: 2
-            total-shards: 3
-          - project: chromium
-            shard: 3
-            total-shards: 3
-          - project: firefox
-            shard: 1
-            total-shards: 3
-          - project: firefox
-            shard: 2
-            total-shards: 3
-          - project: firefox
-            shard: 3
-            total-shards: 3
-          - project: webkit
-            shard: 1
-            total-shards: 3
-          - project: webkit
-            shard: 2
-            total-shards: 3
-          - project: webkit
-            shard: 3
-            total-shards: 3
     
     env:
       # Test environment variables
@@ -66,7 +38,7 @@ jobs:
       # Sharding configuration
       SHARD: true
       SHARD_CURRENT: ${{ matrix.shard }}
-      SHARD_TOTAL: ${{ matrix.total-shards }}
+      SHARD_TOTAL: 3
 
     steps:
       - name: Checkout repository
@@ -88,8 +60,9 @@ jobs:
         run: |
           npx playwright test \
             --project=${{ matrix.project }} \
-            --shard=${{ matrix.shard }}/${{ matrix.total-shards }} \
-            --reporter=github,html,json,junit
+            --shard=${{ matrix.shard }}/3 \
+            --reporter=github,html,json,junit \
+            --timeout=30000
         env:
           BASE_URL: ${{ env.BASE_URL }}
           TIMEOUT: ${{ env.TIMEOUT }}

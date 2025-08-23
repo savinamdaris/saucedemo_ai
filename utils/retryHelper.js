@@ -194,29 +194,19 @@ export class RetryHelper {
   }
 
   /**
-   * Create a retry-enabled test
-   * @param {string} title - Test title
-   * @param {Function} testFn - Test function
-   * @param {Object} retryOptions - Retry configuration
+   * Retry wrapper for Playwright test steps
+   * @param {Function} testStep - The test step to retry
+   * @param {Object} options - Retry options
    */
-  static test(title, testFn, retryOptions = {}) {
-    return test(title, async (testInfo) => {
-      const { maxRetries = 2, retryCondition } = retryOptions;
-      
-      // Override test retry configuration
-      testInfo.retry = maxRetries;
-      
+  static retryStep(testStep, options = {}) {
+    return async (...args) => {
       return await this.withSmartRetry(
-        async () => await testFn(testInfo),
-        {
-          maxRetries,
-          retryCondition,
-          onRetry: (error, attempt) => {
-            console.log(`🔄 Test "${title}" retry ${attempt + 1}: ${error.message}`);
-          }
-        }
+        async (timeoutOptions = {}) => {
+          return await testStep(...args, timeoutOptions);
+        },
+        options
       );
-    });
+    };
   }
 }
 

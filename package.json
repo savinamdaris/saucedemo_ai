@@ -17,6 +17,10 @@
     "test:ci": "CI=true npx playwright test",
     "test:staging": "BASE_URL=https://staging.saucedemo.com npx playwright test",
     "test:prod": "BASE_URL=https://www.saucedemo.com npx playwright test",
+    "test:sharded": "SHARD=true npx playwright test",
+    "test:performance": "npx playwright test --project=performance",
+    "test:retry": "RETRIES=5 npx playwright test",
+    "test:timeout": "TEST_TIMEOUT=60000 TIMEOUT=20000 npx playwright test",
     "install:browsers": "npx playwright install"
   },
   "keywords": [
