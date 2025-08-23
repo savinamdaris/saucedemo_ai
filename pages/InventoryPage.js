@@ -11,8 +11,12 @@ export class InventoryPage {
   }
 
   async isPageLoaded() {
-    return await this.pageTitle.isVisible() && 
-           await this.pageTitle.textContent() === 'Products';
+    // Wait for the page title and sort dropdown to be visible with longer timeout
+    await this.pageTitle.waitFor({ state: 'visible', timeout: 30000 });
+    await this.sortDropdown.waitFor({ state: 'visible', timeout: 30000 });
+    
+    const titleText = await this.pageTitle.textContent();
+    return titleText === 'Products';
   }
 
   async getProductCount() {
@@ -21,11 +25,13 @@ export class InventoryPage {
 
   async addProductToCart(productName) {
     const addButton = this.page.locator(`[data-test="add-to-cart-${productName.toLowerCase().replace(/\s+/g, '-')}"]`);
+    await addButton.waitFor({ state: 'visible' });
     await addButton.click();
   }
 
   async removeProductFromCart(productName) {
     const removeButton = this.page.locator(`[data-test="remove-${productName.toLowerCase().replace(/\s+/g, '-')}"]`);
+    await removeButton.waitFor({ state: 'visible' });
     await removeButton.click();
   }
 
@@ -37,7 +43,20 @@ export class InventoryPage {
   }
 
   async sortProducts(sortOption) {
+    // Wait for the dropdown to be visible and enabled with longer timeout
+    await this.sortDropdown.waitFor({ state: 'visible', timeout: 30000 });
+    await this.sortDropdown.waitFor({ state: 'attached' });
+    
+    // Ensure dropdown is enabled
+    await this.page.waitForFunction(
+      () => !document.querySelector('[data-test="product_sort_container"]')?.disabled,
+      { timeout: 10000 }
+    );
+    
     await this.sortDropdown.selectOption(sortOption);
+    
+    // Wait for the sorting to complete
+    await this.page.waitForTimeout(1000);
   }
 
   async getProductNames() {

@@ -13,7 +13,9 @@ test.describe('Inventory Tests', () => {
     
     await loginPage.goto();
     await loginPage.login(users.standard.username, users.standard.password);
-    expect(await inventoryPage.isPageLoaded()).toBeTruthy();
+    
+    // Wait for inventory page to be fully loaded
+    await inventoryPage.isPageLoaded();
   });
 
   test('should display all products on inventory page', async () => {

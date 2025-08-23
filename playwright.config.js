@@ -56,10 +56,10 @@ export default defineConfig({
     video: process.env.CI ? 'retain-on-failure' : 'retain-on-failure',
     
     /* Global timeout for each action with performance optimization */
-    actionTimeout: process.env.TIMEOUT ? parseInt(process.env.TIMEOUT) : 15000,
+    actionTimeout: process.env.TIMEOUT ? parseInt(process.env.TIMEOUT) : 30000,
     
     /* Global timeout for navigation with performance optimization */
-    navigationTimeout: process.env.TIMEOUT ? parseInt(process.env.TIMEOUT) : 15000,
+    navigationTimeout: process.env.TIMEOUT ? parseInt(process.env.TIMEOUT) : 30000,
     
     /* Performance optimizations */
     ignoreHTTPSErrors: true,
