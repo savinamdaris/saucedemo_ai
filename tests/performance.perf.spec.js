@@ -37,7 +37,7 @@ test.describe('Performance Tests', () => {
     
     const startTime = Date.now();
     
-    await loginPage.login(users.standard.username, users.standard.password);
+    await loginPage.loginAndWaitForSuccess(users.standard.username, users.standard.password);
     await inventoryPage.isPageLoaded();
     
     const loginTime = Date.now() - startTime;
@@ -49,7 +49,7 @@ test.describe('Performance Tests', () => {
 
   test('should load inventory page efficiently', async ({ page }) => {
     await loginPage.goto();
-    await loginPage.login(users.standard.username, users.standard.password);
+    await loginPage.loginAndWaitForSuccess(users.standard.username, users.standard.password);
     
     const startTime = Date.now();
     

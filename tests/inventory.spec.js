@@ -12,7 +12,7 @@ test.describe('Inventory Tests', () => {
     inventoryPage = new InventoryPage(page);
     
     await loginPage.goto();
-    await loginPage.login(users.standard.username, users.standard.password);
+    await loginPage.loginAndWaitForSuccess(users.standard.username, users.standard.password);
     
     // Wait for inventory page to be fully loaded
     await inventoryPage.isPageLoaded();

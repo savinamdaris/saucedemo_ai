@@ -17,6 +17,13 @@ export class LoginPage {
     await this.passwordInput.fill(password);
     await this.loginButton.click();
     
+    // Wait a moment for the page to process the login
+    await this.page.waitForTimeout(1000);
+  }
+
+  async loginAndWaitForSuccess(username, password) {
+    await this.login(username, password);
+    
     // Wait for navigation to complete with longer timeout
     await this.page.waitForURL('**/inventory.html', { timeout: 30000 });
   }

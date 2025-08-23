@@ -14,7 +14,7 @@ test.describe('Login Tests', () => {
   });
 
   test('should login successfully with valid credentials', async () => {
-    await loginPage.login(users.standard.username, users.standard.password);
+    await loginPage.loginAndWaitForSuccess(users.standard.username, users.standard.password);
     
     await expect(inventoryPage.pageTitle).toBeVisible();
     expect(await inventoryPage.isPageLoaded()).toBeTruthy();
@@ -50,7 +50,7 @@ test.describe('Login Tests', () => {
   });
 
   test('should maintain login session after page refresh', async () => {
-    await loginPage.login(users.standard.username, users.standard.password);
+    await loginPage.loginAndWaitForSuccess(users.standard.username, users.standard.password);
     expect(await inventoryPage.isPageLoaded()).toBeTruthy();
     
     await loginPage.page.reload();

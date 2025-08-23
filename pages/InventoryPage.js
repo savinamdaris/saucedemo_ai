@@ -3,7 +3,7 @@ export class InventoryPage {
     this.page = page;
     this.pageTitle = page.locator('.title');
     this.inventoryItems = page.locator('.inventory_item');
-    this.sortDropdown = page.locator('[data-test="product_sort_container"]');
+    this.sortDropdown = page.locator('[data-test="product-sort-container"]'); // Fixed: hyphen not underscore
     this.shoppingCartBadge = page.locator('.shopping_cart_badge');
     this.shoppingCartLink = page.locator('.shopping_cart_link');
     this.menuButton = page.locator('#react-burger-menu-btn');

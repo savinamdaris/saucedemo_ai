@@ -18,7 +18,7 @@ test.describe('End-to-End Shopping Flow', () => {
     checkoutPage = new CheckoutPage(page);
     
     await loginPage.goto();
-    await loginPage.login(users.standard.username, users.standard.password);
+    await loginPage.loginAndWaitForSuccess(users.standard.username, users.standard.password);
   });
 
   test('should complete full shopping flow', async () => {
