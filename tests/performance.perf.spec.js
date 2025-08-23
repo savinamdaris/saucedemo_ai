@@ -38,7 +38,7 @@ test.describe('Performance Tests', () => {
     const startTime = Date.now();
     
     await loginPage.login(users.standard.username, users.standard.password);
-    await inventoryPage.waitForPageLoad();
+    await inventoryPage.isPageLoaded();
     
     const loginTime = Date.now() - startTime;
     console.log(`Login flow completion time: ${loginTime}ms`);

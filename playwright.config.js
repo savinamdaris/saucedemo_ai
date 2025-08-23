@@ -113,9 +113,9 @@ export default defineConfig({
       name: 'webkit',
       use: { 
         ...devices['Desktop Safari'],
-        /* Performance optimizations for WebKit */
+        /* WebKit/Safari doesn't support --disable-web-security, so we use minimal options */
         launchOptions: {
-          args: ['--disable-web-security'],
+          args: [],
         },
       },
     },
@@ -134,8 +134,9 @@ export default defineConfig({
       name: 'Mobile Safari',
       use: { 
         ...devices['iPhone 12'],
+        /* WebKit/Safari doesn't support --disable-web-security, so we use minimal options */
         launchOptions: {
-          args: ['--disable-web-security'],
+          args: [],
         },
       },
     },
