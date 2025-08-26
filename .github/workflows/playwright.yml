@@ -1,5 +1,11 @@
 name: Playwright Tests
 
+# Add these permissions
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
 on:
   push:
     branches: [ main, develop ]
@@ -61,7 +67,7 @@ jobs:
         run: |
           npx playwright test \
             --project=${{ matrix.project }} \
-            --shard=${{ matrix.shard }}/3 \
+            --shard=${{ matrix.shard }}/2 \
             --reporter=github,html,json,junit \
             --timeout=30000
         env:
@@ -284,13 +290,29 @@ jobs:
           path: merged-report/
           retention-days: 60
 
+      # New GitHub Pages deployment method
+      - name: Setup Pages
+        if: github.ref == 'refs/heads/main'
+        uses: actions/configure-pages@v3
+
+      - name: Upload to GitHub Pages
+        if: github.ref == 'refs/heads/main'
+        uses: actions/upload-pages-artifact@v2
+        with:
+          path: merged-report
+
       - name: Deploy to GitHub Pages
         if: github.ref == 'refs/heads/main'
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: merged-report
-          destination_dir: test-reports
+        id: deployment
+        uses: actions/deploy-pages@v2
+
+      # - name: Deploy to GitHub Pages
+      #   if: github.ref == 'refs/heads/main'
+      #   uses: peaceiris/actions-gh-pages@v3
+      #   with:
+      #     github_token: ${{ secrets.GITHUB_TOKEN }}
+      #     publish_dir: merged-report
+      #     destination_dir: test-reports
 
   # Performance and status notification
   notify:
