@@ -1,10 +1,7 @@
 name: Playwright Tests
 
-# Add these permissions
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 on:
   push:
@@ -12,14 +9,11 @@ on:
   pull_request:
     branches: [ main, develop ]
   schedule:
-    # Run tests daily at 2 AM UTC
     - cron: '0 2 * * *'
 
 env:
-  # Environment variables for all jobs
   CI: true
   PLAYWRIGHT_BROWSERS_PATH: 0
-  # Performance optimization
   NODE_OPTIONS: "--max-old-space-size=4096"
 
 jobs:
@@ -34,18 +28,10 @@ jobs:
         shard: [1, 2]
     
     env:
-      # Test environment variables
       BASE_URL: https://www.saucedemo.com
       TIMEOUT: 30000
       RETRIES: 2
       WORKERS: 1
-      # Disable global setup for now to isolate the issue
-      # GLOBAL_SETUP: true
-      # GLOBAL_TEARDOWN: true
-      # Sharding configuration  
-      SHARD: true
-      SHARD_CURRENT: ${{ matrix.shard }}
-      SHARD_TOTAL: 2
 
     steps:
       - name: Checkout repository
@@ -67,7 +53,7 @@ jobs:
         run: |
           npx playwright test \
             --project=${{ matrix.project }} \
-            --shard=${{ matrix.shard }}/ \
+            --shard=${{ matrix.shard }}/2 \
             --reporter=github,html,json,junit \
             --timeout=30000
         env:
@@ -75,11 +61,6 @@ jobs:
           TIMEOUT: ${{ env.TIMEOUT }}
           RETRIES: ${{ env.RETRIES }}
           WORKERS: ${{ env.WORKERS }}
-          GLOBAL_SETUP: ${{ env.GLOBAL_SETUP }}
-          GLOBAL_TEARDOWN: ${{ env.GLOBAL_TEARDOWN }}
-          SHARD: ${{ env.SHARD }}
-          SHARD_CURRENT: ${{ env.SHARD_CURRENT }}
-          SHARD_TOTAL: ${{ env.SHARD_TOTAL }}
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
@@ -105,7 +86,6 @@ jobs:
       TIMEOUT: 20000
       RETRIES: 3
       WORKERS: 1
-      GLOBAL_SETUP: true
 
     steps:
       - name: Checkout repository
@@ -133,7 +113,6 @@ jobs:
           TIMEOUT: ${{ env.TIMEOUT }}
           RETRIES: ${{ env.RETRIES }}
           WORKERS: ${{ env.WORKERS }}
-          GLOBAL_SETUP: ${{ env.GLOBAL_SETUP }}
 
       - name: Upload mobile test results
         uses: actions/upload-artifact@v4
@@ -194,149 +173,11 @@ jobs:
             playwright-report/
           retention-days: 60
 
-  # Merge reports from all shards and browsers
-  merge-reports:
-    name: Merge Test Reports
-    if: always()
-    needs: [test-desktop, test-mobile]
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts
-
-      - name: Merge Test Reports
-        run: |
-          echo "📊 Merging test reports from all shards and browsers..."
-          
-          # Create merged report directory
-          mkdir -p merged-report
-          
-          # Initialize report merge
-          echo '<!DOCTYPE html><html><head><title>Playwright Test Results - All Browsers & Shards</title>' > merged-report/index.html
-          echo '<style>body{font-family:Arial,sans-serif;margin:40px;}h1{color:#2196F3;}ul{list-style-type:none;}li{margin:10px 0;}a{color:#1976D2;text-decoration:none;}a:hover{text-decoration:underline;}.summary{background:#f5f5f5;padding:20px;border-radius:5px;margin:20px 0;}.passed{color:#4CAF50;}.failed{color:#f44336;}.total{color:#2196F3;}</style>' >> merged-report/index.html
-          echo '</head><body><h1>🎭 Playwright Test Results Summary</h1>' >> merged-report/index.html
-          
-          # Count total tests and results
-          total_passed=0
-          total_failed=0
-          total_tests=0
-          
-          echo '<div class="summary"><h2>📈 Test Execution Summary</h2>' >> merged-report/index.html
-          echo '<h3>🌐 Desktop Browser Results (Sharded)</h3><ul>' >> merged-report/index.html
-          
-          # Process desktop results
-          for artifact_dir in artifacts/desktop-results-*; do
-            if [ -d "$artifact_dir" ] && [ -f "$artifact_dir/test-results/results.json" ]; then
-              browser_shard=$(basename "$artifact_dir" | sed 's/desktop-results-//')
-              echo "<li>📱 <strong>$browser_shard</strong>" >> merged-report/index.html
-              
-              # Extract test counts from JSON
-              if [ -f "$artifact_dir/test-results/results.json" ]; then
-                # Simple test result parsing (you can enhance this)
-                echo " - <a href='$browser_shard/index.html'>View Report</a></li>" >> merged-report/index.html
-                
-                # Copy report for browser/shard
-                if [ -f "$artifact_dir/playwright-report/index.html" ]; then
-                  mkdir -p "merged-report/$browser_shard"
-                  cp -r "$artifact_dir/playwright-report/"* "merged-report/$browser_shard/"
-                fi
-              fi
-            fi
-          done
-          
-          echo '</ul><h3>📱 Mobile Browser Results</h3><ul>' >> merged-report/index.html
-          
-          # Process mobile results
-          for artifact_dir in artifacts/mobile-results-*; do
-            if [ -d "$artifact_dir" ]; then
-              mobile_browser=$(basename "$artifact_dir" | sed 's/mobile-results-//' | sed 's/%20/ /g')
-              echo "<li>📱 <strong>$mobile_browser</strong>" >> merged-report/index.html
-              echo " - <a href='mobile-$mobile_browser/index.html'>View Report</a></li>" >> merged-report/index.html
-              
-              # Copy mobile report
-              if [ -f "$artifact_dir/playwright-report/index.html" ]; then
-                mkdir -p "merged-report/mobile-$mobile_browser"
-                cp -r "$artifact_dir/playwright-report/"* "merged-report/mobile-$mobile_browser/"
-              fi
-            fi
-          done
-          
-          echo '</ul></div>' >> merged-report/index.html
-          echo '<p>📊 <strong>Sharding Strategy:</strong> Desktop tests run across 3 shards per browser for optimal performance</p>' >> merged-report/index.html
-          echo '<p>⚡ <strong>Performance Optimizations:</strong> Parallel execution, browser-specific launch args, smart retry logic</p>' >> merged-report/index.html
-          echo '</body></html>' >> merged-report/index.html
-          
-          echo "✅ Report merging completed"
-
-      - name: Upload merged report
-        uses: actions/upload-artifact@v4
-        with:
-          name: merged-test-report
-          path: merged-report/
-          retention-days: 60
-
-      # # New GitHub Pages deployment method
-      # - name: Setup Pages
-      #   if: github.ref == 'refs/heads/main'
-      #   uses: actions/configure-pages@v3
-     
-      # This uses the official GitHub Actions for Pages - much more reliable
-      - name: Setup Pages
-        uses: actions/configure-pages@v3
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v2
-        with:
-           path: merged-report
-      - name: Deploy to GitHub Pages
-        uses: actions/deploy-pages@v2
-
-      - name: Upload to GitHub Pages
-        if: github.ref == 'refs/heads/main'
-        uses: actions/upload-pages-artifact@v2
-        with:
-          path: merged-report
-
-      # Add enhanced permissions and use a different token approach
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-           github_token: ${{ secrets.GITHUB_TOKEN }}
-           publish_dir: merged-report
-           force_orphan: true # This might help with permission issues
-      
-      # - name: Deploy to GitHub Pages
-      #   if: github.ref == 'refs/heads/main'
-      #   id: deployment
-      #   uses: actions/deploy-pages@v2
-
-      # - name: Deploy to GitHub Pages
-      #   if: github.ref == 'refs/heads/main'
-      #   uses: peaceiris/actions-gh-pages@v3
-      #   with:
-      #     github_token: ${{ secrets.GITHUB_TOKEN }}
-      #     publish_dir: merged-report
-      #     destination_dir: test-reports
-
   # Performance and status notification
   notify:
     name: Test Results Notification
     if: always()
-    needs: [test-desktop, test-mobile, performance-test, merge-reports]
+    needs: [test-desktop, test-mobile, performance-test]
     runs-on: ubuntu-latest
     
     steps:
@@ -369,7 +210,7 @@ jobs:
           echo "⚡ Performance Tests: ${{ steps.results.outputs.performance }}"
           echo ""
           echo "🚀 Performance Optimizations Applied:"
-          echo "   • Test sharding across 3 shards per browser"
+          echo "   • Test sharding across 2 shards per browser"
           echo "   • Smart retry mechanisms with exponential backoff"
           echo "   • Browser-specific launch optimizations"
           echo "   • Parallel execution with optimized worker count"
