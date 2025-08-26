@@ -67,7 +67,7 @@ jobs:
         run: |
           npx playwright test \
             --project=${{ matrix.project }} \
-            --shard=${{ matrix.shard }}/2 \
+            --shard=${{ matrix.shard }}/ \
             --reporter=github,html,json,junit \
             --timeout=30000
         env:
@@ -290,10 +290,20 @@ jobs:
           path: merged-report/
           retention-days: 60
 
-      # New GitHub Pages deployment method
+      # # New GitHub Pages deployment method
+      # - name: Setup Pages
+      #   if: github.ref == 'refs/heads/main'
+      #   uses: actions/configure-pages@v3
+     
+      # This uses the official GitHub Actions for Pages - much more reliable
       - name: Setup Pages
-        if: github.ref == 'refs/heads/main'
         uses: actions/configure-pages@v3
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v2
+        with:
+           path: merged-report
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v2
 
       - name: Upload to GitHub Pages
         if: github.ref == 'refs/heads/main'
@@ -301,10 +311,18 @@ jobs:
         with:
           path: merged-report
 
+      # Add enhanced permissions and use a different token approach
       - name: Deploy to GitHub Pages
-        if: github.ref == 'refs/heads/main'
-        id: deployment
-        uses: actions/deploy-pages@v2
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+           github_token: ${{ secrets.GITHUB_TOKEN }}
+           publish_dir: merged-report
+           force_orphan: true # This might help with permission issues
+      
+      # - name: Deploy to GitHub Pages
+      #   if: github.ref == 'refs/heads/main'
+      #   id: deployment
+      #   uses: actions/deploy-pages@v2
 
       # - name: Deploy to GitHub Pages
       #   if: github.ref == 'refs/heads/main'
