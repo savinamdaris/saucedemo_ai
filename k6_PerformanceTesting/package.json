@@ -1,0 +1,20 @@
+{
+  "name": "k6-performance-testing",
+  "version": "1.0.0",
+  "description": "Comprehensive performance testing project for SauceDemo using k6.",
+  "scripts": {
+    "load-test": "k6 run scripts/load-test.js",
+    "stress-test": "k6 run scripts/stress-test.js",
+    "spike-test": "k6 run scripts/spike-test.js",
+    "endurance-test": "k6 run scripts/endurance-test.js",
+    "advanced-login": "k6 run scripts/advanced-login.js"
+  },
+  "keywords": [
+    "performance",
+    "testing",
+    "k6",
+    "saucedemo"
+  ],
+  "author": "Your Name",
+  "license": "MIT"
+}
